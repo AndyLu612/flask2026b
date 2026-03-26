@@ -16,7 +16,7 @@ def index():
 
 @app.route("/mis")
 def course():
-    return "<h1>資訊管理導論</h1>"
+    return "<h1>資訊管理導論</h1><br><a href=/>返回首頁</a>s"
 
 @app.route("/today")
 def today():
@@ -39,13 +39,11 @@ def account():
         return render_template("account.html")
 
 
-#@app.route("/about")
-#def about():
-#    return render_template("about.html")
-
 @app.route("/about")
 def about():
-    return redirect("https://www1.pu.edu.tw/~s1101680/")
+    return render_template("about.html")
+
+
 
 if __name__ == "__main__":
     app.run()
