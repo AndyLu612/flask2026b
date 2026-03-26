@@ -11,6 +11,7 @@ def index():
     homepage += "<a href=/welcome?nick=andylu>傳送使用者暱稱</a><br>"
     homepage += "<a href=/account>網頁表單傳值</a><br>"
     homepage += "<a href=/about>安毅簡介網頁</a><br>"
+    homepage += "<a href=/math3>次方與根號計算</a><br>"
     return homepage
 
 
@@ -43,7 +44,29 @@ def account():
 def about():
     return render_template("about.html")
 
+@app.route("/math3", methods=["GET", "POST"])
+def math3():
+    result = None
 
+    if request.method == "POST":
+        x = float(request.form["x"])
+        opt = request.form["opt"]
+
+        if opt == "**":
+            y = float(request.form["y"])
+            result = x ** y
+
+        elif opt == "root":
+            y = float(request.form["y"])
+            if y == 0:
+                result = "數學不能開0次根"
+            else:
+                result = x ** (1/y)
+
+        else:
+            result = "請輸入正確運算"
+
+    return render_template("math3.html", result=result)
 
 if __name__ == "__main__":
     app.run()
