@@ -215,10 +215,11 @@ def searchQ():
                 info += "片長：" + data["showLength"] + " 分鐘<br>"
                 info += "上映日期：" + data["showDate"] + "<br><br>"
 
-        return info
+        return info + "<br><a href='/'>返回首頁</a>"
 
     else:
         return render_template("input.html")
+
 
 
 # ======================
