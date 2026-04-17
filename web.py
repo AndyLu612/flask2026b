@@ -34,7 +34,8 @@ def index():
     homepage += "<a href=/account>網頁表單傳值</a><br>"
     homepage += "<a href=/about>安毅簡介網頁</a><br>"
     homepage += "<a href=/math3>次方與根號計算</a><br>"
-    homepage += "<br><a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a><br>"
+    homepage += "<a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a>"
+    homepage += "<a href=/search"
     return homepage
 
 
@@ -154,6 +155,24 @@ def movie():
         db.collection("電影").document(movie_id).set(doc)
 
     return "爬蟲完成 + Firebase寫入完成，更新時間：" + lastUpdate
+
+
+# ======================
+# 🎬 movie（根據片名關鍵字查詢資料）
+# ======================
+@app.route("/search")
+def search():
+    info = ""
+    db = firestore.client()  
+    docs = db.collection("電影").get() 
+    for doc in docs:
+        if "女" in doc.to_dict()["title"]:
+            info += "片名：" + doc.to_dict()["title"] + "<br>" 
+            info += "海報：" + doc.to_dict()["picture"] + "<br>"
+            info += "影片介紹：" + doc.to_dict()["hyperlink"] + "<br>"
+            info += "片長：" + doc.to_dict()["showLength"] + " 分鐘<br>" 
+            info += "上映日期：" + doc.to_dict()["showDate"] + "<br><br>"           
+    return info
 
 
 # ======================
