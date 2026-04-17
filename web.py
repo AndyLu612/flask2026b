@@ -12,15 +12,24 @@ from firebase_admin import credentials, firestore
 app = Flask(__name__)
 
 # ======================
-# 🔥 Firebase 初始化（Vercel安全版）
+# 🔥 Firebase（本地 + 雲端自動切換）
 # ======================
+db = None
+
 firebase_config = os.environ.get("FIREBASE_CONFIG")
 
-if firebase_config and not firebase_admin._apps:
-    cred = credentials.Certificate(json.loads(firebase_config))
+if not firebase_admin._apps:
+    if firebase_config:
+        # ☁️ Vercel / 雲端
+        cred = credentials.Certificate(json.loads(firebase_config))
+    else:
+        # 💻 本地開發
+        cred = credentials.Certificate("spider/serviceAccountKey.json")
+
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
 
 # ======================
 # 🏠 首頁
@@ -34,8 +43,8 @@ def index():
     homepage += "<a href=/account>網頁表單傳值</a><br>"
     homepage += "<a href=/about>安毅簡介網頁</a><br>"
     homepage += "<a href=/math3>次方與根號計算</a><br>"
-    homepage += "<a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a>"
-    homepage += "<a href=/search>根據片名關鍵字查詢資料</a>"
+    homepage += "<a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a><br>"
+    homepage += "<a href=/search>根據片名關鍵字查詢資料</a><br>"
     return homepage
 
 
@@ -166,7 +175,7 @@ def search():
     db = firestore.client()  
     docs = db.collection("電影").get() 
     for doc in docs:
-        if "女" in doc.to_dict()["title"]:
+        if "者" in doc.to_dict()["title"]:
             info += "片名：" + doc.to_dict()["title"] + "<br>" 
             info += "海報：" + doc.to_dict()["picture"] + "<br>"
             info += "影片介紹：" + doc.to_dict()["hyperlink"] + "<br>"
