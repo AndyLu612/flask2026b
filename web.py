@@ -1,23 +1,26 @@
+import os
+import json
 import requests
 from bs4 import BeautifulSoup
 
 from flask import Flask, render_template, request
 from datetime import datetime
-from flask import redirect
 
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 app = Flask(__name__)
 
-# 🔥 Firebase 初始化（只做一次）
-cred = credentials.Certificate("spider/serviceAccountKey.json")
+# ======================
+# 🔥 Firebase 初始化（Vercel安全版）
+# ======================
+firebase_config = os.environ.get("FIREBASE_CONFIG")
 
-if not firebase_admin._apps:
+if firebase_config and not firebase_admin._apps:
+    cred = credentials.Certificate(json.loads(firebase_config))
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-
 
 # ======================
 # 🏠 首頁
