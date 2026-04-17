@@ -34,7 +34,7 @@ def index():
     homepage += "<a href=/account>網頁表單傳值</a><br>"
     homepage += "<a href=/about>安毅簡介網頁</a><br>"
     homepage += "<a href=/math3>次方與根號計算</a><br>"
-    homepage += "<br><a href=/movie>爬蟲 + 寫入Firestore</a><br>"
+    homepage += "<br><a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a><br>"
     return homepage
 
 
