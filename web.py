@@ -44,7 +44,7 @@ def index():
     homepage += "<a href=/about>安毅簡介網頁</a><br>"
     homepage += "<a href=/math3>次方與根號計算</a><br>"
     homepage += "<a href=/movie>讀取開眼電影即將上映影片，寫入Firestore</a><br>"
-    homepage += "<a href=/search>根據片名關鍵字查詢資料</a><br>"
+    homepage += "<a href=/searchQ>根據片名關鍵字查詢資料</a><br>"
     return homepage
 
 
@@ -163,7 +163,12 @@ def movie():
 
         db.collection("電影").document(movie_id).set(doc)
 
-    return "爬蟲完成 + Firebase寫入完成，更新時間：" + lastUpdate
+    return """
+    爬蟲完成 + Firebase寫入完成，更新時間：""" + lastUpdate + """
+    <br><br>
+    <a href="/">返回首頁</a>
+    """
+
 
 
 # ======================
@@ -182,6 +187,35 @@ def search():
             info += "片長：" + doc.to_dict()["showLength"] + " 分鐘<br>" 
             info += "上映日期：" + doc.to_dict()["showDate"] + "<br><br>"           
     return info
+
+
+
+# ======================
+# 🎬 movie（根據片名關鍵字查詢資料）
+# ======================
+@app.route("/searchQ", methods=["POST", "GET"])
+def searchQ():
+
+    if request.method == "POST":
+        MovieTitle = request.form["MovieTitle"]
+        info = ""
+
+        collection_ref = db.collection("電影")
+        docs = collection_ref.order_by("showDate").get()
+
+        for doc in docs:
+            data = doc.to_dict()
+
+            if MovieTitle in data["title"]:
+                info += "片名：" + data["title"] + "<br>"
+                info += "影片介紹：" + data["hyperlink"] + "<br>"
+                info += "片長：" + data["showLength"] + " 分鐘<br>"
+                info += "上映日期：" + data["showDate"] + "<br><br>"
+
+        return info
+
+    else:
+        return render_template("input.html")
 
 
 # ======================
