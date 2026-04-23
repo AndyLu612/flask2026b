@@ -141,8 +141,17 @@ def movie():
     lastUpdate = sp.find("div", class_="smaller09").text[5:]
 
     for item in result:
-        picture = item.find("img").get("src").replace(" ", "")
-        title = item.find("div", class_="filmtitle").text
+        picture = item.find("img").get("src").strip()
+
+        # 🔥 完整修正圖片網址（最重要）
+        if picture.startswith("//"):
+            picture = "https:" + picture
+        elif picture.startswith("/"):
+            picture = "http://www.atmovies.com.tw" + picture
+        elif not picture.startswith("http"):
+            picture = "http://www.atmovies.com.tw/" + picture
+
+        title = item.find("div", class_="filmtitle").text.strip()
 
         movie_id = item.find("div", class_="filmtitle").find("a").get("href")
         movie_id = movie_id.replace("/", "").replace("movie", "")
@@ -153,7 +162,7 @@ def movie():
         show = show.replace("上映日期：", "").replace("片長：", "").replace("分", "")
 
         showDate = show[0:10]
-        showLength = show[13:]
+        showLength = show[13:] if len(show) > 13 else "未知"
 
         doc = {
             "title": title,
@@ -166,11 +175,8 @@ def movie():
 
         db.collection("電影").document(movie_id).set(doc)
 
-    return """
-    爬蟲完成 + Firebase寫入完成，更新時間：""" + lastUpdate + """
-    <br><br>
-    <a href="/">返回首頁</a>
-    """
+    return "<h2>爬蟲完成</h2><a href='/'>返回首頁</a>"
+
 
 
 
@@ -201,24 +207,56 @@ def searchQ():
 
     if request.method == "POST":
         MovieTitle = request.form["MovieTitle"]
-        info = ""
+        info = f"<h2>查詢結果（關鍵字：{MovieTitle}）</h2>"
 
-        collection_ref = db.collection("電影")
-        docs = collection_ref.order_by("showDate").get()
+        docs = db.collection("電影").order_by("showDate").get()
+
+        found = False
 
         for doc in docs:
             data = doc.to_dict()
 
             if MovieTitle in data["title"]:
-                info += "片名：" + data["title"] + "<br>"
-                info += "影片介紹：" + data["hyperlink"] + "<br>"
-                info += "片長：" + data["showLength"] + " 分鐘<br>"
-                info += "上映日期：" + data["showDate"] + "<br><br>"
+                found = True
 
-        return info + "<br><a href='/'>返回首頁</a>"
+                pic = data["picture"]
+
+                # 🔥 再保險修一次圖片
+                if pic.startswith("//"):
+                    pic = "https:" + pic
+                elif pic.startswith("/"):
+                    pic = "http://www.atmovies.com.tw" + pic
+
+                info += f"""
+                <div style="
+                    border:1px solid #ccc;
+                    border-radius:10px;
+                    padding:15px;
+                    margin:15px 0;
+                    box-shadow:2px 2px 8px rgba(0,0,0,0.1);
+                    background:#f9f9f9;
+                ">
+                    <h3>{data['title']}</h3>
+
+                    <img src="{pic}" width="200"><br><br>
+
+                    <a href="{data['hyperlink']}" target="_blank">點我看介紹</a><br>
+                    片長：{data['showLength']} 分鐘<br>
+                    上映日期：{data['showDate']}
+                </div>
+                """
+
+        if not found:
+            info += "<h3>查無資料</h3>"
+
+        info += "<br><a href='/'>返回首頁</a>"
+
+        return info
 
     else:
         return render_template("input.html")
+
+
 
 
 
