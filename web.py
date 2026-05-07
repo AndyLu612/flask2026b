@@ -47,6 +47,8 @@ def index():
     homepage += "<a href=/searchQ>根據片名關鍵字查詢資料</a><br>"
     homepage += "<a href=/search_teacher>靜宜資管老師查詢</a><br>"
     homepage += "<a href=/course>子青老師本學期課程</a><br>"
+    homepage += "<a href=/road>台中市十大肇事路口</a><br>"
+    homepage += "<a href=/weather>天氣查詢系統</a><br>"
     return homepage
 
 
@@ -296,7 +298,7 @@ def search_teacher():
             """
 
     if result_html == "":
-        result_html = "<h3>查無資料 😢</h3>"
+        result_html = "<h3>查無資料</h3>"
 
     return f"""
     <h2>靜宜資管老師查詢</h2>
@@ -356,6 +358,159 @@ def course_drive():
     info += "<br><a href='/'>返回首頁</a>"
 
     return info
+
+
+@app.route("/road", methods=["GET", "POST"])
+def road():
+
+    Result = ""
+
+    url = "https://datacenter.taichung.gov.tw/swagger/OpenData/a1b899c0-511f-4e3d-b22b-814982a97e41"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
+    }
+
+    JsonData = []
+
+
+    for i in range(5):
+        try:
+            Data = requests.get(url, headers=headers, timeout=10)
+            Data.raise_for_status()
+            JsonData = Data.json()
+            break
+        except Exception:
+            import time
+            time.sleep(2)
+
+
+    if not JsonData:
+        return """
+        <h2>台中市十大肇事路口查詢</h2>
+        <p>政府OpenData目前無回應，請稍後再試</p>
+        <a href='/'>返回首頁</a>
+        """
+
+
+    if request.method == "POST":
+
+        Road = request.form["Road"]
+
+        # 🔍 查單一
+        if Road.strip() != "":
+
+            for item in JsonData:
+                if Road in item["路口名稱"]:
+                    Result += (
+                        item["路口名稱"] +
+                        "：發生" +
+                        item["總件數"] +
+                        "件，主因是" +
+                        item["主要肇因"] +
+                        "<br><br>"
+                    )
+
+            if Result == "":
+                Result = "抱歉，查無相關資料！"
+
+        # 📋 查全部
+        else:
+
+            Result = "<h3>📊 全部資料（前10筆）</h3>"
+
+            for i, item in enumerate(JsonData[:10]):
+                Result += (
+                    str(i+1) + ". " +
+                    item["路口名稱"] +
+                    "：發生" +
+                    item["總件數"] +
+                    "件，主因：" +
+                    item["主要肇因"] +
+                    "<br>"
+                )
+
+
+    webpage = """
+    <h2>台中市十大肇事路口查詢</h2>
+
+    <form method="post">
+        請輸入路名（不輸入＝查全部）：
+        <input type="text" name="Road">
+        <input type="submit" value="查詢">
+    </form>
+
+    <hr>
+    """
+
+    webpage += Result
+    webpage += "<br><br><a href='/'>返回首頁</a>"
+
+    return webpage
+
+
+@app.route("/weather", methods=["GET", "POST"])
+def weather():
+
+    result = ""
+
+    if request.method == "POST":
+
+        city = request.form.get("city", "").strip()
+
+        if city == "":
+            result = "請輸入縣市（例：臺中市）"
+
+        else:
+
+            city = city.replace("台", "臺")
+
+            token = "rdec-key-123-45678-011121314"
+
+            url = (
+                "https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001"
+                "?Authorization=" + token +
+                "&format=JSON&locationName=" + city
+            )
+
+            try:
+                data = requests.get(url, timeout=10)
+                json_data = data.json()
+
+                locations = json_data["records"]["location"]
+
+                if len(locations) == 0:
+                    result = "查無資料，請輸入正確縣市（例：臺中市）"
+                else:
+                    weather = locations[0]["weatherElement"][0]["time"][0]["parameter"]["parameterName"]
+                    rain = locations[0]["weatherElement"][1]["time"][0]["parameter"]["parameterName"]
+
+                    result = f"""
+                    <h3>查詢結果：{city}</h3>
+                    <p>天氣：{weather}</p>
+                    <p>降雨機率：{rain}%</p>
+                    """
+
+            except Exception as e:
+                result = "查詢失敗：" + str(e)
+
+    return f"""
+    <h2>🌤 天氣查詢系統</h2>
+
+    <form method="post">
+        輸入縣市：
+        <input type="text" name="city" placeholder="例：臺中市">
+        <input type="submit" value="查詢">
+    </form>
+
+    <hr>
+
+    {result}
+
+    <br><br>
+    <a href='/'>返回首頁</a>
+    """
 
 
 # ======================
