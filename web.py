@@ -607,7 +607,7 @@ def webhook():
 
             data = doc.to_dict()
 
-            if rate == data.get("rate"):
+            if rate.strip() == str(data.get("rate", "")).strip():
 
                 result += "片名：" + data.get("title", "") + "\n"
                 result += "簡介：" + data.get("introduce", "") + "\n"
