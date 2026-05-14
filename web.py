@@ -582,7 +582,13 @@ def rate():
 
 
 # ======================
-# 查詢資料庫中該級的電影片名
+# 清理字串（避免查不到）
+# ======================
+def clean(text):
+    return str(text).strip().replace(" ", "").replace("\n", "").replace("\r", "")
+
+# ======================
+# Webhook
 # ======================
 @app.route("/webhook3", methods=["POST"])
 def webhook():
@@ -595,7 +601,10 @@ def webhook():
 
     if action == "rateChoice":
 
-        rate = req["queryResult"]["parameters"]["rate"]
+        # Dialogflow 傳來的值
+        rate = req["queryResult"]["parameters"].get("rate", "")
+
+        print("USER RATE:", repr(rate))
 
         db = firestore.client()
 
@@ -607,12 +616,19 @@ def webhook():
 
             data = doc.to_dict()
 
-            if rate.strip() == str(data.get("rate", "")).strip():
+            db_rate = data.get("rate", "")
+
+            print("DB RATE:", repr(db_rate))
+
+            # ======================
+            # 核心比對（已修好）
+            # ======================
+            if clean(rate) == clean(db_rate):
 
                 result += "片名：" + data.get("title", "") + "\n"
                 result += "簡介：" + data.get("introduce", "") + "\n"
-                result += "上映：" + data.get("showDate", "") + "\n"
-                result += "片長：" + str(data.get("showLength", "")) + "\n"
+                result += "上映：" + str(data.get("showDate", "")) + "\n"
+                result += "片長：" + str(data.get("showLength", "")) + " 分鐘\n"
                 result += "連結：" + data.get("hyperlink", "") + "\n\n"
 
         if result == "":
@@ -623,6 +639,7 @@ def webhook():
     return jsonify({
         "fulfillmentText": info
     })
+
 
 # ======================
 # 🚀 run
