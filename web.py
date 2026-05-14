@@ -608,7 +608,7 @@ def webhook():
 
         db = firestore.client()
 
-        docs = db.collection("本周新片含分級").stream()
+        docs = db.collection("本週新片含分級").stream()
 
         result = ""
 
