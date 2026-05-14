@@ -50,6 +50,7 @@ def index():
     homepage += "<a href=/road>台中市十大肇事路口</a><br>"
     homepage += "<a href=/weather>天氣查詢系統</a><br>"
     homepage += "<a href=/rate>本週新片進DB</a><br>"
+    homepage += "<a href=/webhook3>查詢資料庫中該級的電影片名</a><br>"
     return homepage
 
 
@@ -581,31 +582,43 @@ def rate():
 
 
 # ======================
-# DF
+# 查詢資料庫中該級的電影片名
 # ======================
 @app.route("/webhook3", methods=["POST"])
 def webhook():
-    # build a request object
-    req = request.get_json(force=True)
-    # fetch queryResult from json
-    action =  req.get("queryResult").get("action")
-    #msg =  req.get("queryResult").get("queryText")
-    #info = "動作：" + action + "； 查詢內容：" + msg
-    if (action == "rateChoice"):
-        rate =  req.get("queryResult").get("parameters").get("rate")
-        info = "我是Andy開發的電影聊天機器人,您選擇的電影分級是：" + rate + "，相關電影：\n"
-        db = firestore.client()
-        collection_ref = db.collection("電影含分級")
-        docs = collection_ref.get()
-        result = ""
-        for doc in docs:
-            dict = doc.to_dict()
-            if rate in dict["rate"]:
-                result += "片名：" + dict["title"] + "\n"
-                result += "介紹：" + dict["hyperlink"] + "\n\n"
-        info += result
-    return make_response(jsonify({"fulfillmentText": info}))
 
+    req = request.get_json(force=True)
+
+    action = req["queryResult"]["action"]
+
+    info = "查無資料"
+
+    if action == "rateChoice":
+
+        rate = req["queryResult"]["parameters"]["rate"]
+
+        db = firestore.client()
+
+        docs = db.collection("電影含分級").get()
+
+        result = ""
+
+        for doc in docs:
+
+            data = doc.to_dict()
+
+            if rate in data["rate"]:
+
+                result += "片名：" + data["title"] + "\n"
+
+        if result == "":
+            result = "沒有符合電影"
+
+        info = "您選擇的電影分級：" + rate + "\n\n" + result
+
+    return jsonify({
+        "fulfillmentText": info
+    })
 
 
 # ======================
