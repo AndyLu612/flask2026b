@@ -595,9 +595,7 @@ def webhook():
 
     if action == "rateChoice":
 
-        rate = req["queryResult"]["parameters"].get("rate", "")
-
-        print("user rate:", rate)
+        rate = req["queryResult"]["parameters"]["rate"]
 
         db = firestore.client()
 
@@ -609,25 +607,22 @@ def webhook():
 
             data = doc.to_dict()
 
-            print("db rate:", data.get("rate"))
-
-            if rate.strip() == str(data.get("rate", "")).strip():
+            if rate == data.get("rate"):
 
                 result += "片名：" + data.get("title", "") + "\n"
                 result += "簡介：" + data.get("introduce", "") + "\n"
                 result += "上映：" + data.get("showDate", "") + "\n"
-                result += "片長：" + str(data.get("showLength", "")) + " 分鐘\n"
+                result += "片長：" + str(data.get("showLength", "")) + "\n"
                 result += "連結：" + data.get("hyperlink", "") + "\n\n"
 
         if result == "":
-            result = "沒有符合條件的電影，請確認分級是否正確。"
+            result = "沒有符合條件的電影"
 
         info = "您選擇的電影分級：" + rate + "\n\n" + result
 
     return jsonify({
         "fulfillmentText": info
     })
-
 
 # ======================
 # 🚀 run
