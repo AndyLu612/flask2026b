@@ -50,7 +50,19 @@ def index():
     homepage += "<a href=/road>台中市十大肇事路口</a><br>"
     homepage += "<a href=/weather>天氣查詢系統</a><br>"
     homepage += "<a href=/rate>本週新片進DB</a><br>"
-    homepage += "<a href=/webhook3>查詢資料庫中該級的電影片名</a><br>"
+
+    # Dialogflow Messenger
+    homepage += '''
+    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+
+    <df-messenger
+        intent="WELCOME"
+        chat-title="misAgent(Andy)"
+        agent-id="345b313d-b647-4eba-bac2-a3096e1d5a1f"
+        language-code="zh-tw">
+    </df-messenger>
+    '''
+
     return homepage
 
 
