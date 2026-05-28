@@ -657,14 +657,14 @@ def webhook4():
 
     elif action == "MovieDetail":
 
-        params = req.get("queryResult", {}).get("parameters", {})
+    params = req.get("queryResult", {}).get("parameters", {})
 
-        print("PARAMS:", params)
+    print("PARAMS:", params)
 
-        question = params.get("filmq", "")
-        keyword = params.get("any", "")
+    question = params.get("filmq", "")
+    keyword = params.get("any", "")
 
-        info = (
+    info = (
         "我是盧安毅開發的電影聊天機器人\n"
         "您要查詢電影的：" + str(question) + "\n"
         "關鍵字是：" + str(keyword)
