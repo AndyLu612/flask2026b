@@ -609,8 +609,8 @@ def clean(text):
 # ======================
 # Webhook
 # ======================
-@app.route("/webhook3", methods=["POST"])
-def webhook():
+@app.route("/webhook4", methods=["POST"])
+def webhook4():
 
     req = request.get_json(force=True)
 
@@ -655,6 +655,11 @@ def webhook():
 
         info = "您選擇的電影分級：" + rate + "\n\n" + result
 
+    elif (action == "MovieDetail"):
+        question =  req.get("queryResult").get("parameters").get("filmq")
+        keyword =  req.get("queryResult").get("parameters").get("any")
+        info = "我是盧安毅開發的電影聊天機器人，您要查詢電影的" + question + "，關鍵字是：" + keyword + "\n\n"
+
     return jsonify({
         "fulfillmentText": info
     })
@@ -670,6 +675,26 @@ def AI():
     
     # 回傳生成的文字
     return response.text
+
+
+@app.route('/ask', methods=['GET', 'POST']) 
+def ask():
+    if request.method == "POST":
+        user_prompt = request.form.get('prompt', '')
+        if not user_prompt:
+            return "請輸入內容", 400
+        try:
+            response = client.models.generate_content(
+                model='gemini-3.5-flash',
+                contents=user_prompt,
+            )
+            return response.text
+        except Exception as e:
+            return f"發生錯誤: {str(e)}", 500
+
+    else:    
+        # 當使用者直接打開網頁 (GET) 時，顯示輸入框畫面
+        return render_template("ask.html")
 
 
 # ======================
