@@ -618,14 +618,12 @@ def webhook4():
 
     info = "查無資料"
 
+
     if action == "rateChoice":
 
-        # Dialogflow 傳來的值
-        rate = req["queryResult"]["parameters"].get("rate", "")
+        rate = req.get("queryResult", {}).get("parameters", {}).get("rate", "")
 
-        print("USER RATE:", repr(rate))
-
-        db = firestore.client()
+        print("USER RATE:", rate)
 
         docs = db.collection("本週新片含分級").stream()
 
@@ -637,11 +635,8 @@ def webhook4():
 
             db_rate = data.get("rate", "")
 
-            print("DB RATE:", repr(db_rate))
+            print("DB RATE:", db_rate)
 
-            # ======================
-            # 核心比對（已修好）
-            # ======================
             if clean(rate) == clean(db_rate):
 
                 result += "片名：" + data.get("title", "") + "\n"
@@ -655,6 +650,7 @@ def webhook4():
 
         info = "您選擇的電影分級：" + rate + "\n\n" + result
 
+
     elif action == "MovieDetail":
 
         params = req.get("queryResult", {}).get("parameters", {})
@@ -665,39 +661,35 @@ def webhook4():
         keyword = params.get("any", "")
 
         info = (
-        "我是盧安毅開發的電影聊天機器人\n"
-        "您要查詢電影的：" + str(question) + "\n"
-        "關鍵字是：" + str(keyword)
+            "我是盧安毅開發的電影聊天機器人\n"
+            "您要查詢電影的：" + str(question) + "\n"
+            "關鍵字是：" + str(keyword) + "\n\n"
         )
+
 
         if question == "片名":
 
-            db = firestore.client()
+            docs = db.collection("本週新片含分級").get()
 
-            collection_ref = db.collection("本週新片含分級")
-
-            ocs = collection_ref.get()
-
-            info = ""
             found = False
 
-        for doc in docs:
+            for doc in docs:
 
-            data = doc.to_dict()
+                data = doc.to_dict()
 
-            if keyword in data.get("title", ""):
+                if keyword in data.get("title", ""):
 
-                found = True
+                    found = True
 
-                info += "片名：" + data.get("title", "") + "\n"
-                info += "海報：" + data.get("picture", "") + "\n"
-                info += "影片介紹：" + data.get("hyperlink", "") + "\n"
-                info += "片長：" + str(data.get("showLength", "")) + " 分鐘\n"
-                info += "分級：" + data.get("rate", "") + "\n"
-                info += "上映日期：" + str(data.get("showDate", "")) + "\n\n"
+                    info += "片名：" + data.get("title", "") + "\n"
+                    info += "海報：" + data.get("picture", "") + "\n"
+                    info += "影片介紹：" + data.get("hyperlink", "") + "\n"
+                    info += "片長：" + str(data.get("showLength", "")) + " 分鐘\n"
+                    info += "分級：" + data.get("rate", "") + "\n"
+                    info += "上映日期：" + str(data.get("showDate", "")) + "\n\n"
 
-        if not found:
-            info = "很抱歉，目前無符合這個關鍵字的電影"
+            if not found:
+                info = "很抱歉，目前無符合這個關鍵字的電影"
 
     return jsonify({
         "fulfillmentText": info
