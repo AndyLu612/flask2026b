@@ -657,18 +657,47 @@ def webhook4():
 
     elif action == "MovieDetail":
 
-    params = req.get("queryResult", {}).get("parameters", {})
+        params = req.get("queryResult", {}).get("parameters", {})
 
-    print("PARAMS:", params)
+        print("PARAMS:", params)
 
-    question = params.get("filmq", "")
-    keyword = params.get("any", "")
+        question = params.get("filmq", "")
+        keyword = params.get("any", "")
 
-    info = (
+        info = (
         "我是盧安毅開發的電影聊天機器人\n"
         "您要查詢電影的：" + str(question) + "\n"
         "關鍵字是：" + str(keyword)
-    )
+        )
+
+        if question == "片名":
+
+            db = firestore.client()
+
+            collection_ref = db.collection("本週新片含分級")
+
+            ocs = collection_ref.get()
+
+            info = ""
+            found = False
+
+        for doc in docs:
+
+            data = doc.to_dict()
+
+            if keyword in data.get("title", ""):
+
+                found = True
+
+                info += "片名：" + data.get("title", "") + "\n"
+                info += "海報：" + data.get("picture", "") + "\n"
+                info += "影片介紹：" + data.get("hyperlink", "") + "\n"
+                info += "片長：" + str(data.get("showLength", "")) + " 分鐘\n"
+                info += "分級：" + data.get("rate", "") + "\n"
+                info += "上映日期：" + str(data.get("showDate", "")) + "\n\n"
+
+        if not found:
+            info = "很抱歉，目前無符合這個關鍵字的電影"
 
     return jsonify({
         "fulfillmentText": info
