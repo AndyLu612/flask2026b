@@ -2,6 +2,7 @@ import os
 import json
 import requests
 from bs4 import BeautifulSoup
+from google import genai
 
 from flask import Flask, render_template, request, make_response, jsonify
 from datetime import datetime
@@ -10,6 +11,12 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 app = Flask(__name__)
+
+
+# 建立 Client 時保持括號空白！
+# SDK 會自動去抓你設定的 GEMINI_API_KEY 環境變數
+client = genai.Client()
+
 
 # ======================
 # 🔥 Firebase（本地 + 雲端自動切換）
@@ -651,6 +658,18 @@ def webhook():
     return jsonify({
         "fulfillmentText": info
     })
+
+
+@app.route("/AI")
+def AI():
+    # 每次使用者拜訪該路徑時，直接使用全域的 client 呼叫模型
+    response = client.models.generate_content(
+        model='gemini-3.5-flash',
+        contents='我想查詢靜宜大學資管系的評價？',
+    )
+    
+    # 回傳生成的文字
+    return response.text
 
 
 # ======================
