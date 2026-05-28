@@ -690,6 +690,10 @@ def webhook4():
 
             if not found:
                 info = "很抱歉，目前無符合這個關鍵字的電影"
+    
+    elif (action == "input.unknown"):
+        info =  req["queryResult"]["queryText"]
+
 
     return jsonify({
         "fulfillmentText": info
